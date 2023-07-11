@@ -12,6 +12,7 @@
               class="px-4 py-3 rounded-lg border border-gray-100 mt-1"
               type="text"
               placeholder="iMoney..."
+              v-model="fullName"
             />
           </label>
         </div>
@@ -23,6 +24,7 @@
               class="px-4 py-3 rounded-lg border border-gray-100 mt-1"
               type="email"
               placeholder="example@gmail.com"
+              v-model="email"
             />
           </label>
         </div>
@@ -34,18 +36,33 @@
               class="px-4 py-3 rounded-lg border border-gray-100 mt-1"
               type="password"
               placeholder="Example"
+              v-model="password"
             />
           </label>
         </div>
         <div class="row">
           <button
+            v-if="!isPending"
             class="py-3 text-center w-full bg-primary text-white font-bold rounded-lg"
             type="submit"
           >
             Sign Up
           </button>
+          <button
+            v-if="isPending"
+            class="py-3 text-center w-full bg-gray-800 text-white font-bold rounded-lg cursor-not-allowed"
+            type="button"
+            disabled
+          >
+            Loading...
+          </button>
         </div>
       </form>
+
+      <!-- Start: Error -->
+      <div v-if="error" class="text-left text-red mt-4">
+        <span>{{ error }}</span>
+      </div>
 
       <!-- Start: Direction -->
       <div class="w-full text-center mt-6">
@@ -63,11 +80,25 @@
 </template>
 
 <script>
+import { ref } from "vue";
+import { useSignUp } from "@/composables/useSignUp";
+import { useRoute } from "vue-router";
+
 export default {
   setup() {
-    function onSubmit() {}
+    const { error, isPending, signUp } = useSignUp();
+    const router = useRoute();
 
-    return { onSubmit };
+    const fullName = ref("");
+    const email = ref("");
+    const password = ref("");
+
+    async function onSubmit() {
+      await signUp(email.value, password.value, fullName.value);
+      if (!error.value) router.push({ name: "Home", params: {} });
+    }
+
+    return { onSubmit, fullName, email, password, error, isPending };
   },
 };
 </script>
