@@ -9,7 +9,7 @@ module.exports = {
         primary: "#0012FF",
         green: "#67D4CA",
         red: "#F28080",
-        "dark-light": "#FAFAFB",
+        "dark-light": "rgb(247, 249, 250)",
       },
     },
   },
