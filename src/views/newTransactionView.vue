@@ -19,7 +19,7 @@
                   type="text"
                   class="text-4xl text-dark w-full outline-none mt-1"
                   placeholder="0"
-                  v-model="total"
+                  v-model.number="total"
                 />
               </div>
             </label>
