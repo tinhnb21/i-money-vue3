@@ -19,6 +19,7 @@
                   type="text"
                   class="text-4xl text-dark w-full outline-none mt-1"
                   placeholder="0"
+                  v-model="total"
                 />
               </div>
             </label>
@@ -38,6 +39,7 @@
                   type="text"
                   class="text-dark w-full outline-none"
                   placeholder="Select a category"
+                  v-model="category"
                 />
               </div>
             </label>
@@ -57,19 +59,20 @@
                   type="text"
                   class="text-dark w-full outline-none"
                   placeholder="Note"
+                  v-modal="note"
                 />
               </div>
             </label>
           </div>
           <div class="row">
-            <label for="createdAt" class="flex items-center">
+            <label for="time" class="flex items-center">
               <div class="flex-none w-10 mr-4">
                 <span class="flex items-center justify-end text-dark">
                   <i class="t2ico t2ico-calendar text-2xl"></i>
                 </span>
               </div>
               <div class="flex-1 py-2 border-b border-gray-100">
-                <div class="text-dark w-full">Sun, 29 Dec 2023</div>
+                <div class="text-dark w-full">{{ new Date() }}</div>
               </div>
             </label>
           </div>
@@ -118,6 +121,7 @@
                     type="text"
                     class="text-dark w-full outline-none"
                     placeholder="Select a location"
+                    v-model="location"
                   />
                 </div>
               </label>
@@ -137,6 +141,7 @@
                     type="text"
                     class="text-dark w-full outline-none"
                     placeholder="With person"
+                    v-model="person"
                   />
                 </div>
               </label>
@@ -150,7 +155,7 @@
         <div class="bg-white rounded-lg py-4">
           <div class="container mx-auto px-8">
             <div class="row">
-              <label for="camera" class="flex items-center text-primary">
+              <label for="file" class="flex items-center text-primary">
                 <div class="flex-none w-10 mr-4">
                   <span class="flex items-center justify-end">
                     <i class="t2ico t2ico-camera text-2xl"></i>
@@ -158,24 +163,92 @@
                 </div>
                 <div class="flex-1 py-2">
                   <div class="w-full font-semibold">Upload photos</div>
+                  <input
+                    type="file"
+                    id="file"
+                    class="w-0 h-0 overflow-hidden absolute"
+                    @change="onChangeFile"
+                  />
                 </div>
               </label>
+              <div class="text-red">{{ errorFile }}</div>
             </div>
           </div>
         </div>
       </div>
     </template>
+
+    <button class="bg-primary text-white" type="submit">
+      Testing Add Button
+    </button>
   </form>
 </template>
 
 <script>
 import { ref } from "vue";
+import { useUser } from "@/composables/useUser";
+import useCollection from "@/composables/useCollection";
+import useStorage from "@/composables/useStorage";
+
 export default {
   setup() {
-    const isMoreDetails = ref(false);
-    function onSubmit() {}
+    const { getUser } = useUser();
+    const { error, addRecord } = useCollection("transactions");
+    const { uploadFile, url } = useStorage("transactions");
 
-    return { onSubmit, isMoreDetails };
+    const isMoreDetails = ref(false);
+    const total = ref(0);
+    const category = ref("");
+    const note = ref("");
+    const time = ref(new Date());
+    const file = ref(null);
+    const errorFile = ref(null);
+    const location = ref("");
+    const person = ref("");
+
+    function onChangeFile(event) {
+      const selected = event.target.files[0];
+      const typesFile = ["image/png", "image/jpg"];
+
+      if (selected && typesFile.includes(selected.type)) {
+        file.value = selected;
+      } else {
+        file.value = null;
+        errorFile.value = "Please select a file type png or jpg.";
+      }
+    }
+
+    async function onSubmit() {
+      if (file.value) await uploadFile(file.value);
+
+      const { user } = getUser();
+      const transaction = {
+        total: parseInt(total.value),
+        category: category.value,
+        note: note.value,
+        time: time.value,
+        location: location.value,
+        person: person.value,
+        userId: user.value.uid,
+        thumbnail: url.value,
+      };
+
+      await addRecord(transaction);
+      console.log(error);
+    }
+
+    return {
+      onSubmit,
+      onChangeFile,
+      isMoreDetails,
+      total,
+      category,
+      note,
+      time,
+      errorFile,
+      location,
+      person,
+    };
   },
 };
 </script>
